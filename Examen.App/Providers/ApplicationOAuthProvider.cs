@@ -10,11 +10,13 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OAuth;
 using Examen.App.Models;
+using Examen.Dominio.Entidades;
 
 namespace Examen.App.Providers
 {
     public class ApplicationOAuthProvider : OAuthAuthorizationServerProvider
     {
+
         private readonly string _publicClientId;
 
         public ApplicationOAuthProvider(string publicClientId)
@@ -31,11 +33,11 @@ namespace Examen.App.Providers
         {
             var userManager = context.OwinContext.GetUserManager<ApplicationUserManager>();
 
-            ApplicationUser user = await userManager.FindAsync(context.UserName, context.Password);
+            AppUser user = await userManager.FindAsync(context.UserName, context.Password);
 
             if (user == null)
             {
-                context.SetError("invalid_grant", "The user name or password is incorrect.");
+                context.SetError("invalid_grant", "El nombre de usuario y/o la clave son incorrectas.");
                 return;
             }
 
@@ -44,8 +46,17 @@ namespace Examen.App.Providers
             ClaimsIdentity cookiesIdentity = await user.GenerateUserIdentityAsync(userManager,
                 CookieAuthenticationDefaults.AuthenticationType);
 
-            AuthenticationProperties properties = CreateProperties(user.UserName);
+            //AuthenticationProperties properties = CreateProperties(user.UserName);
+            //AuthenticationTicket ticket = new AuthenticationTicket(oAuthIdentity, properties);
+
+            //Agrego los roles como una cadena al bearer token
+            List<Claim> roles = oAuthIdentity.Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
+            AuthenticationProperties properties = CreateProperties(user.UserName, Newtonsoft.Json.JsonConvert.SerializeObject(roles.Select(x => x.Value)));
+
             AuthenticationTicket ticket = new AuthenticationTicket(oAuthIdentity, properties);
+
+
+
             context.Validated(ticket);
             context.Request.Context.Authentication.SignIn(cookiesIdentity);
         }
@@ -94,5 +105,16 @@ namespace Examen.App.Providers
             };
             return new AuthenticationProperties(data);
         }
+
+        public static AuthenticationProperties CreateProperties(string userName, string Roles)
+        {
+            IDictionary<string, string> data = new Dictionary<string, string>
+        {
+            { "userName", userName },
+            {"rolesCadena",Roles}
+        };
+            return new AuthenticationProperties(data);
+        }
+
     }
 }

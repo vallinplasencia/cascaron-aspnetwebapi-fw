@@ -16,24 +16,30 @@ using Microsoft.Owin.Security.OAuth;
 using Examen.App.Models;
 using Examen.App.Providers;
 using Examen.App.Results;
+using System.Data.Entity;
+using Examen.Dominio.Entidades;
+using System.Linq;
+using Examen.App.Util.Seguridad;
 
 namespace Examen.App.Controllers
 {
-    [Authorize]
+    //[Authorize(Roles = TiposRole.SuperAdmin + "," + TiposRole.Admin)]
     [RoutePrefix("api/Account")]
     public class AccountController : ApiController
     {
         private const string LocalLoginProvider = "Local";
         private ApplicationUserManager _userManager;
+        private ApplicationRoleManager _roleManager;
 
         public AccountController()
         {
         }
 
-        public AccountController(ApplicationUserManager userManager,
+        public AccountController(ApplicationUserManager userManager, ApplicationRoleManager roleManager,
             ISecureDataFormat<AuthenticationTicket> accessTokenFormat)
         {
             UserManager = userManager;
+            RoleManager = roleManager;
             AccessTokenFormat = accessTokenFormat;
         }
 
@@ -46,6 +52,18 @@ namespace Examen.App.Controllers
             private set
             {
                 _userManager = value;
+            }
+        }
+
+        public ApplicationRoleManager RoleManager
+        {
+            get
+            {
+                return _roleManager ?? Request.GetOwinContext().GetUserManager<ApplicationRoleManager>();
+            }
+            private set
+            {
+                _roleManager = value;
             }
         }
 
@@ -125,7 +143,7 @@ namespace Examen.App.Controllers
 
             IdentityResult result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword,
                 model.NewPassword);
-            
+
             if (!result.Succeeded)
             {
                 return GetErrorResult(result);
@@ -250,7 +268,9 @@ namespace Examen.App.Controllers
                 return new ChallengeResult(provider, this);
             }
 
-            ApplicationUser user = await UserManager.FindAsync(new UserLoginInfo(externalLogin.LoginProvider,
+            //ApplicationUser user = await UserManager.FindAsync(new UserLoginInfo(externalLogin.LoginProvider,
+            //    externalLogin.ProviderKey));
+            AppUser user = await UserManager.FindAsync(new UserLoginInfo(externalLogin.LoginProvider,
                 externalLogin.ProviderKey));
 
             bool hasRegistered = user != null;
@@ -258,9 +278,9 @@ namespace Examen.App.Controllers
             if (hasRegistered)
             {
                 Authentication.SignOut(DefaultAuthenticationTypes.ExternalCookie);
-                
-                 ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(UserManager,
-                    OAuthDefaults.AuthenticationType);
+
+                ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(UserManager,
+                   OAuthDefaults.AuthenticationType);
                 ClaimsIdentity cookieIdentity = await user.GenerateUserIdentityAsync(UserManager,
                     CookieAuthenticationDefaults.AuthenticationType);
 
@@ -323,12 +343,23 @@ namespace Examen.App.Controllers
         [Route("Register")]
         public async Task<IHttpActionResult> Register(RegisterBindingModel model)
         {
+            if (model == null)
+            {
+                ModelState.AddModelError("", "Llene los datos que se le solicitan");
+            }
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
+            if (model.Roles==null || model.Roles.Length == 0)
+            {
+                ModelState.AddModelError("roles", "No ha seleccionado ningun role");
+                return BadRequest(ModelState);
+            }
+
+            //var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
+            var user = new AppUser() { UserName = model.Email, Email = model.Email };
 
             IdentityResult result = await UserManager.CreateAsync(user, model.Password);
 
@@ -336,8 +367,16 @@ namespace Examen.App.Controllers
             {
                 return GetErrorResult(result);
             }
+            IdentityResult resultRole = await UserManager.AddToRolesAsync(user.Id, model.Roles);
 
-            return Ok();
+            if (!resultRole.Succeeded)
+            {
+                IdentityResult resultEliminarUser = await UserManager.DeleteAsync(user);
+                //Aregar el codigo para manejar si al eliminar el usuario lanza algun error.
+
+                return GetErrorResult(resultRole);
+            }
+            return Ok(user);
         }
 
         // POST api/Account/RegisterExternal
@@ -357,7 +396,8 @@ namespace Examen.App.Controllers
                 return InternalServerError();
             }
 
-            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
+            //var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
+            var user = new AppUser() { UserName = model.Email, Email = model.Email };
 
             IdentityResult result = await UserManager.CreateAsync(user);
             if (!result.Succeeded)
@@ -368,10 +408,30 @@ namespace Examen.App.Controllers
             result = await UserManager.AddLoginAsync(user.Id, info.Login);
             if (!result.Succeeded)
             {
-                return GetErrorResult(result); 
+                return GetErrorResult(result);
             }
             return Ok();
         }
+
+
+        /*************------Mis metodos-------******************/
+
+
+        /// <summary>
+        /// Retorna los todos los roles que se le pueden asignar a un usuario.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("todos-roles")]
+        public async Task<IEnumerable<string>> GetTodosLosRoles()
+        {
+            var roles = await RoleManager.Roles.ToListAsync();
+            return roles.Select(x => x.Name);
+        }
+
+
+        /*************------FIN Mis metodos-------******************/
+
 
         protected override void Dispose(bool disposing)
         {

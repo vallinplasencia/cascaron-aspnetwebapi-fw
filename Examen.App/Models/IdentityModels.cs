@@ -18,16 +18,16 @@ namespace Examen.App.Models
         }
     }
 
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class aApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext()
+        public aApplicationDbContext()
             : base("DefaultConnection", throwIfV1Schema: false)
         {
         }
         
-        public static ApplicationDbContext Create()
+        public static aApplicationDbContext aCreate()
         {
-            return new ApplicationDbContext();
+            return new aApplicationDbContext();
         }
     }
 }

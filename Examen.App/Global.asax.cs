@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Examen.App.App_Start;
+using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Http;
@@ -18,6 +20,9 @@ namespace Examen.App
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            //Inicializando y poblando la BD
+            Database.SetInitializer(new ExamenDbInicializar());
         }
     }
 }
