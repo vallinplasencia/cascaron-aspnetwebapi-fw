@@ -54,16 +54,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Abstracto\IActividadRepo.cs" />
     <Compile Include="Abstracto\IActivoRepo.cs" />
     <Compile Include="Abstracto\ICategoriaRepo.cs" />
     <Compile Include="Abstracto\IResponsableRepo.cs" />
     <Compile Include="Class1.cs" />
+    <Compile Include="Entidades\Actividad.cs" />
     <Compile Include="Entidades\Activo.cs" />
     <Compile Include="Entidades\AppRole.cs" />
     <Compile Include="Entidades\AppUser.cs" />
     <Compile Include="Entidades\Categoria.cs" />
     <Compile Include="Entidades\Responsable.cs" />
+    <Compile Include="Entidades\Tarea.cs" />
+    <Compile Include="Entidades\Trabajador.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Util\EstadosActividad.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -70,9 +70,12 @@ namespace Examen.App.Util
 
         private void addBinders()
         {
+            container.RegisterType<IActividadRepo, ActividadRepo>();
+
             container.RegisterType<ICategoriaRepo, CategoriaRepo>();
             container.RegisterType<IResponsableRepo, ResponsableRepo>();
             container.RegisterType<IActivoRepo, ActivoRepo>();
+            
             //container.RegisterType<ICategoriaRepo, CategoriaRepo>(new HierarchicalLifetimeManager());
             //container.RegisterInstance(typeof(IXxxRepository), new XxxRepository());
         }

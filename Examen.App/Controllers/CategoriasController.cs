@@ -13,7 +13,7 @@ using System.Web.Http.Description;
 
 namespace Examen.App.Controllers
 {
-    [Authorize(Roles = TiposRole.SuperAdmin + "," + TiposRole.Admin + "," + TiposRole.Usuario)]
+    //[Authorize(Roles = TiposRole.SuperAdmin + "," + TiposRole.Admin + "," + TiposRole.Usuario)]
     [RoutePrefix("api/categorias")]
     public class CategoriasController : ApiController
     {
