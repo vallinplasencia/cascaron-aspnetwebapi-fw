@@ -1,6 +1,7 @@
 ﻿using Examen.AccesoDatos.Context;
 using Examen.Dominio.Abstracto;
 using Examen.Dominio.Entidades;
+using Examen.Dominio.Util;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -89,6 +90,8 @@ namespace Examen.AccesoDatos.Repositorios
             }
             return await q.ToListAsync();
         }
+
+        
 
         /// <summary>
         /// Elimina el item pasado por parametro
@@ -225,6 +228,68 @@ namespace Examen.AccesoDatos.Repositorios
                     .Count();
             }
             return db.Actividades.Where(c => c.AsignadaAId == idUserLogeado).Count();
+        }
+
+
+        /// <summary>
+        /// Retorna el listado de todas las tareas que se me han asignado en todas las actividades y
+        /// NO la he realizado segun la pagina, la cantidad de item a mostrar asi como el 
+        /// campo a ordenar y el orden de los elementos.
+        /// Si pagina es menor q cero se retornan todos los registros.
+        /// Si cantItem es menor q uno se retornan todos los registros
+        /// </summary>
+        /// <param name="pagina"></param>
+        /// <param name="cantItem"></param>
+        /// <param name="ordenar"></param>
+        /// <param name="orden"></param>
+        /// <param name="filtro"></param>
+        /// <param name="idUserLogeado">Id del usuario logueado</param>
+        /// <returns>Task<List<Tarea>></returns>
+        public async Task<List<Tarea>> MisNotificacionesAsync(int pagina = 0, int cantItem = 50, string ordenar = "nombre", string orden = "ASC", string filtro = null, string idUserLogeado = null)
+        {
+            IQueryable<Tarea> q;
+
+            switch (ordenar)
+            {
+                case "nombre":
+                default:
+                    q = (orden == "asc") ? db.Tareas.OrderBy(c => c.Nombre) : db.Tareas.OrderByDescending(c => c.Nombre);
+                    break;
+            }
+            if (filtro != null)
+            {
+                filtro = filtro.ToLower();
+                q = q.Where(c => c.Nombre.ToLower().Contains(filtro));
+            }
+            q = q
+                .Include(t => t.Actividad).
+                Where(t => t.Actividad.AsignadaAId == idUserLogeado && t.Realizada == false && t.Actividad.Estado != EstadosActividad.Cumplida);
+            //Si cantidad de item >= 1 y pagina >=0 paginado de la bd sino RECUPERO todos los registros.
+            if (cantItem >= 1 && pagina >= 0)
+            {
+                q = q.Skip(pagina * cantItem)
+                .Take(cantItem);
+            }
+            return await q.ToListAsync();
+        }
+
+        /// <summary>
+        /// Retorna el numero total de notificaciones(tareas asignadas sin realizar)
+        /// </summary>
+        /// <param name="idUserLogeado">Id del usuario logueado</param>
+        /// <returns></returns>
+        public int TotalMisNotificaciones(string filtro = null, string idUserLogeado = null)
+        {
+            if (filtro != null)
+            {
+                return db.Tareas
+                    //.Where(c=>c.Titulo.ToLower().Contains(filtro) || c.Descripcion.ToLower().Contains(filtro))
+                    .Where(t => t.Actividad.AsignadaAId == idUserLogeado && t.Realizada == false && t.Actividad.Estado != EstadosActividad.Cumplida && t.Nombre.Contains(filtro))
+                    .Count();
+            }
+            return db.Tareas
+                .Where(t => t.Actividad.AsignadaAId == idUserLogeado && t.Realizada == false && t.Actividad.Estado != EstadosActividad.Cumplida)
+                .Count();
         }
 
     }

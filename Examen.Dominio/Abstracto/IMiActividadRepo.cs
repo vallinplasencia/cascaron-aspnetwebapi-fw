@@ -55,5 +55,31 @@ namespace Examen.Dominio.Abstracto
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns></returns>
         int TotalActividadesAsignadas(string filtro = null, string idUserLogeado = null);
+
+
+        /// <summary>
+        /// Retorna el listado de todas las tareas que se me han asignado en todas las actividades y
+        /// NO la he realizado segun la pagina, la cantidad de item a mostrar asi como el 
+        /// campo a ordenar y el orden de los elementos.
+        /// Si pagina es menor q cero se retornan todos los registros.
+        /// Si cantItem es menor q uno se retornan todos los registros
+        /// </summary>
+        /// <param name="pagina"></param>
+        /// <param name="cantItem"></param>
+        /// <param name="ordenar"></param>
+        /// <param name="orden"></param>
+        /// <param name="filtro"></param>
+        /// <param name="idUserLogeado">Id del usuario logueado</param>
+        /// <returns>Task<List<Tarea>></returns>
+        Task<List<Tarea>> MisNotificacionesAsync(int pagina = 0, int cantItem = 50, string ordenar = "nombre", string orden = "ASC", string filtro = null, string idUserLogeado = null);
+
+
+        /// <summary>
+        /// Retorna el numero total de notificaciones
+        /// </summary>
+        /// <param name="idUserLogeado">Id del usuario logueado</param>
+        /// <returns></returns>
+        int TotalMisNotificaciones(string filtro = null, string idUserLogeado = null);
+
     }
 }

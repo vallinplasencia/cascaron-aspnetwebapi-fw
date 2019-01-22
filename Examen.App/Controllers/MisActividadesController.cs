@@ -195,7 +195,12 @@ namespace Examen.App.Controllers
 
 
 
-
+        /// <summary>
+        /// Hace q se pongo en CUMPLIDA la tarea segun se le pase por parametro y ademas
+        /// actualiza el ESTADO de la actividad.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpPut]
         [Route("tarea/{id}/realizada")]
         [ResponseType(typeof(void))]
@@ -228,6 +233,49 @@ namespace Examen.App.Controllers
             }
             return StatusCode(HttpStatusCode.NoContent);
         }
+
+        /// <summary>
+        /// Retorna el listado de tareas q no se han realizado de todas las actividades que
+        /// me han sido asignadas.
+        /// </summary>
+        /// <param name="_pagina"></param>
+        /// <param name="_limite"></param>
+        /// <param name="_ordenar"></param>
+        /// <param name="_orden"></param>
+        /// <param name="_filtro"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("notificaciones")]
+        [ResponseType(typeof(List<Tarea>))]
+        public async Task<IHttpActionResult> MisTareasPorRealizar([FromUri]int _pagina = 1, [FromUri]int _limite = 50,
+            [FromUri]string _ordenar = "nombre", [FromUri]string _orden = "asc", [FromUri]string _filtro = null
+         )
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            //_orden = _orden.ToLower();
+            string[] camposOrdenar = { "nombre"};
+            string[] ordenValores = { "asc", "desc" };
+
+            if (
+                !camposOrdenar.Any(campo => campo == _ordenar)
+                || !ordenValores.Any(ordValor => ordValor == _orden)
+                || _pagina < 1 || _limite < 1)
+            {
+                ModelState.AddModelError("error", "Valores incorrectos en la query string");
+                return BadRequest(ModelState);
+            }
+            var tareas = await repo.MisNotificacionesAsync(_pagina - 1, _limite, _ordenar, _orden, _filtro, User.Identity.GetUserId());
+
+            var resp = Request.CreateResponse<List<Tarea>>(HttpStatusCode.OK, tareas);
+            resp.Headers.Add(Urls.HEADER_ACCESS_CONTROL_EXPOSE, Urls.MY_HEADER_TOTAL_COUNT);
+            resp.Headers.Add(Urls.MY_HEADER_TOTAL_COUNT, repo.TotalMisNotificaciones(_filtro, User.Identity.GetUserId()).ToString());
+            //return resp;
+            return ResponseMessage(resp);
+        }
+
 
         /// <summary>
         /// Retorna los posibles valores de los campos que se llenan de la bd para dar de alta a una nueva actividad.
