@@ -63,10 +63,13 @@
     <Compile Include="Class1.cs" />
     <Compile Include="Context\AppDbContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repositorios\TareaRepo.cs" />
+    <Compile Include="Repositorios\MiActividadRepo.cs" />
     <Compile Include="Repositorios\ActividadRepo.cs" />
     <Compile Include="Repositorios\ActivoRepo.cs" />
     <Compile Include="Repositorios\CategoriaRepo.cs" />
     <Compile Include="Repositorios\ResponsableRepo.cs" />
+    <Compile Include="Repositorios\TrabajadorRepo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

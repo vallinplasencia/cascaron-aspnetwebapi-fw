@@ -13,7 +13,7 @@ namespace Examen.Dominio.Entidades
     public class AppUser : Microsoft.AspNet.Identity.EntityFramework.IdentityUser
     {
         [Required]
-        public Trabajador Trabajador { get; set; }
+        public virtual Trabajador Trabajador { get; set; }
 
 
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<AppUser> manager, string authenticationType)

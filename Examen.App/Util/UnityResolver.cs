@@ -71,6 +71,9 @@ namespace Examen.App.Util
         private void addBinders()
         {
             container.RegisterType<IActividadRepo, ActividadRepo>();
+            container.RegisterType<IMiActividadRepo, MiActividadRepo>();
+            container.RegisterType<ITareaRepo, TareaRepo>();
+            container.RegisterType<ITrabajadorRepo, TrabajadorRepo>();
 
             container.RegisterType<ICategoriaRepo, CategoriaRepo>();
             container.RegisterType<IResponsableRepo, ResponsableRepo>();

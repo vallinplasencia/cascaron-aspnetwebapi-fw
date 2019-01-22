@@ -16,24 +16,26 @@ using System.Web.Http.Description;
 
 namespace Examen.App.Controllers
 {
-    [RoutePrefix("api/actividades")]
-    [Authorize(Roles = TiposRole.Admin)]
-    public class ActividadesController : ApiController
+    [RoutePrefix("api/mis-actividades")]
+    [Authorize(Roles = TiposRole.Admin + "," + TiposRole.Usuario)]
+    public class MisActividadesController : ApiController
     {
-        private IActividadRepo repo;
+        private IMiActividadRepo repo;
         private ITrabajadorRepo repoTrabajadores;
+        private ITareaRepo repoTareas;
 
-        public ActividadesController(IActividadRepo repo, ITrabajadorRepo repoTrabajadores) : base()
+        public MisActividadesController(IMiActividadRepo repo, ITrabajadorRepo repoTrabajadores, ITareaRepo repoTareas) : base()
         {
             this.repo = repo;
             this.repoTrabajadores = repoTrabajadores;
+            this.repoTareas = repoTareas;
         }
 
         // GET: api/Actividades
         [HttpGet]
         [Route("")]
         [ResponseType(typeof(List<Actividad>))]
-        public async Task<IHttpActionResult> GetActividades([FromUri]int _pagina = 1, [FromUri]int _limite = 50,
+        public async Task<IHttpActionResult> GetActividadesAsignadas([FromUri]int _pagina = 1, [FromUri]int _limite = 50,
             [FromUri]string _ordenar = "titulo", [FromUri]string _orden = "asc", [FromUri]string _filtro = null
          )
         {
@@ -42,7 +44,7 @@ namespace Examen.App.Controllers
                 return BadRequest(ModelState);
             }
             //_orden = _orden.ToLower();
-            string[] camposOrdenar = { "titulo", "estado", "fechaRegistro", "creadaPorNombre", "asignadaANombre"};
+            string[] camposOrdenar = { "titulo", "estado", "fechaRegistro", "creadaPorNombre", "asignadaANombre" };
             string[] ordenValores = { "asc", "desc" };
 
             if (
@@ -53,22 +55,22 @@ namespace Examen.App.Controllers
                 ModelState.AddModelError("error", "Valores incorrectos en la query string");
                 return BadRequest(ModelState);
             }
-            var actividades = await repo.ListarAsync(_pagina - 1, _limite, _ordenar, _orden, _filtro);
+            var actividades = await repo.ListarAsignadasAsync(_pagina - 1, _limite, _ordenar, _orden, _filtro, User.Identity.GetUserId());
 
             var resp = Request.CreateResponse<List<Actividad>>(HttpStatusCode.OK, actividades);
             resp.Headers.Add(Urls.HEADER_ACCESS_CONTROL_EXPOSE, Urls.MY_HEADER_TOTAL_COUNT);
-            resp.Headers.Add(Urls.MY_HEADER_TOTAL_COUNT, repo.TotalActividades(_filtro).ToString());
+            resp.Headers.Add(Urls.MY_HEADER_TOTAL_COUNT, repo.TotalActividadesAsignadas(_filtro, User.Identity.GetUserId()).ToString());
             //return resp;
             return ResponseMessage(resp);
         }
 
         // GET: api/Actividades/5
         [HttpGet]
-        [Route("{id}", Name = "GetActividad")]
+        [Route("{id}", Name = "GetActividadAsignada")]
         [ResponseType(typeof(Actividad))]
-        public async Task<IHttpActionResult> GetActividad(int id)
+        public async Task<IHttpActionResult> GetActividadAsignada(int id)
         {
-            Actividad actividad = await repo.GetActividadAsync(id);
+            Actividad actividad = await repo.GetActividadAsignadaAsync(id, User.Identity.GetUserId());
             if (actividad == null)
             {
                 return NotFound();
@@ -92,7 +94,7 @@ namespace Examen.App.Controllers
                 ModelState.AddModelError("error", "Los id no coinciden");
                 return BadRequest(ModelState);
             }
-            var actividadActual = await repo.GetActividadAsync(id);
+            var actividadActual = await repo.GetActividadAsignadaAsync(id, User.Identity.GetUserId());
 
             if (actividadActual == null)
             {
@@ -113,7 +115,7 @@ namespace Examen.App.Controllers
                 CreadaPorId = User.Identity.GetUserId(),
 
             };
-            int rowAffectadas = await repo.SalvarAsync(actividad, actividadActual);
+            int rowAffectadas = await repo.SalvarAsignadaAsync(actividad, actividadActual, User.Identity.GetUserId());
 
             switch (rowAffectadas)
             {
@@ -137,15 +139,17 @@ namespace Examen.App.Controllers
                 return BadRequest(ModelState);
             }
             int porcentaje = 0;
-            foreach (var t in actividadBM.Tareas) {
+            foreach (var t in actividadBM.Tareas)
+            {
                 porcentaje += t.Porcentaje;
             }
-            if(porcentaje < 1 || porcentaje > 100)
+            if (porcentaje < 1 || porcentaje > 100)
             {
                 ModelState.AddModelError("", "La sumatoria de los porcentajes que representa cada tarea debe de estar entre 1 y 100. Actualmente es " + porcentaje);
                 return BadRequest(ModelState);
             }
-            Actividad actividad = new Actividad {
+            Actividad actividad = new Actividad
+            {
                 Titulo = actividadBM.Titulo,
                 Descripcion = actividadBM.Descripcion,
 
@@ -156,13 +160,13 @@ namespace Examen.App.Controllers
 
                 AsignadaAId = actividadBM.TrabajadorId,
                 CreadaPorId = User.Identity.GetUserId(),
-                
+
             };
-            if (await repo.SalvarAsync(actividad, null) < 1)
+            if (await repo.SalvarAsignadaAsync(actividad, null, User.Identity.GetUserId()) < 1)
             {
                 return StatusCode(HttpStatusCode.InternalServerError);
             }
-            return CreatedAtRoute("GetActividad", new { id = actividad.Id }, actividad);
+            return CreatedAtRoute("GetActividadAsignada", new { id = actividad.Id }, actividad);
         }
 
         // DELETE: api/Actividades/5
@@ -171,13 +175,13 @@ namespace Examen.App.Controllers
         [ResponseType(typeof(Actividad))]
         public async Task<IHttpActionResult> DeleteActividad(int id)
         {
-            var actividad = await repo.GetActividadAsync(id);
+            var actividad = await repo.GetActividadAsignadaAsync(id, User.Identity.GetUserId());
 
             if (actividad == null)
             {
                 return NotFound();
             }
-            actividad = await repo.RemoverAsync(actividad);
+            actividad = await repo.RemoverAsignadaAsync(actividad, User.Identity.GetUserId());
 
             if (actividad == null)
             {
@@ -188,6 +192,42 @@ namespace Examen.App.Controllers
 
 
         /********---------OTROS METODO DE ACCION.----------**********/
+
+
+
+
+        [HttpPut]
+        [Route("tarea/{id}/realizada")]
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> RealizarTarea(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }            
+            var tarea = await repoTareas.GetTareaAsync(id);
+
+            if (tarea == null)
+            {
+                return NotFound();
+            }
+            if (tarea.Actividad.AsignadaAId != User.Identity.GetUserId())
+            {
+                ModelState.AddModelError("error", "La tarea no está asignada a usted(Usuario autenticado).");
+                return BadRequest(ModelState);
+            }
+            int rowAffectadas = await repoTareas.TareaRealizadaAsync(tarea);
+
+            switch (rowAffectadas)
+            {
+                case 0:
+                    ModelState.AddModelError("error", "No se guardaron los cambios. Inténtelo mas tarde");
+                    return BadRequest(ModelState);
+                case -1:
+                    return StatusCode(HttpStatusCode.InternalServerError);
+            }
+            return StatusCode(HttpStatusCode.NoContent);
+        }
 
         /// <summary>
         /// Retorna los posibles valores de los campos que se llenan de la bd para dar de alta a una nueva actividad.
@@ -225,7 +265,7 @@ namespace Examen.App.Controllers
                 return BadRequest(ModelState);
             }
             //Response.Headers.Add(Urls.HEADER_TOTAL_COUNT_SEC_RESPONSABLES, repoResponsable.TotalResponsables(_filtroResp).ToString());
-            
+
             var trabajadores = await repoTrabajadores.ListarAsync(_paginaResp - 1, _limiteResp, _ordenarResp, _ordenResp, _filtroResp);
 
             var resp = Request.CreateResponse<ActividadCamposDto>(HttpStatusCode.OK, new ActividadCamposDto
@@ -262,7 +302,7 @@ namespace Examen.App.Controllers
             [FromUri]string _ordenarResp = "titulo", [FromUri]string _ordenResp = "asc", [FromUri]string _filtroResp = null
         )
         {
-            var actividad = await repo.GetActividadAsync(id);
+            var actividad = await repo.GetActividadAsignadaAsync(id, User.Identity.GetUserId());
 
             if (actividad == null)
             {
@@ -280,7 +320,7 @@ namespace Examen.App.Controllers
                 ModelState.AddModelError("error", "Valores incorrectos en la query string");
                 return BadRequest(ModelState);
             }
-            
+
             var trabajadores = await repoTrabajadores.ListarAsync(_paginaResp - 1, _limiteResp, _ordenarResp, _ordenResp, _filtroResp);
 
             var resp = Request.CreateResponse<ActividadCamposDto>(HttpStatusCode.OK, new ActividadCamposDto

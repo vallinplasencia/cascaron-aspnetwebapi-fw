@@ -25,21 +25,23 @@ namespace Examen.Dominio.Entidades
         [Required(ErrorMessage = "El {0} es obligatorio")]
         public EstadosActividad Estado { get; set; }
 
-        [Required(ErrorMessage = "El {0} es obligatorio")]
+        [Required(ErrorMessage = "la fecha de registro es obligatorio")]
         [Display(Description = "Fecha de registro")]
         public DateTime FechaRegistro { get; set; }
 
         //*****Relaciones****
 
         //Relacion q representa que Trabajador CREO esta Actividad
-        public string CreadaPorId { get; set; }
-        [ForeignKey("CreadaPorId")]
         [Required(ErrorMessage = "El {0} es obligatorio")]
+        public string CreadaPorId { get; set; }
+        [ForeignKey("CreadaPorId")]        
+        [Display(Description = "Creador")]
         public Trabajador CreadaPor { get; set; }
 
         //Relacion q representa a q Trabajador se ASIGNO esta Actividad
         public string AsignadaAId { get; set; }
-        [ForeignKey("AsignadaAId")]        
+        [ForeignKey("AsignadaAId")]
+        [Display(Description = "Asignada a")]
         public Trabajador AsignadaA { get; set; }
 
         //Relacion 1-m con Tareas
@@ -48,5 +50,6 @@ namespace Examen.Dominio.Entidades
 
         [Timestamp]
         public byte[] RowVersion { get; set; }
+        
     }
 }

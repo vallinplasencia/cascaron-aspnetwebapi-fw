@@ -17,6 +17,7 @@ namespace Examen.AccesoDatos.Context
 
         public DbSet<Trabajador> Trabajadores { get; set; }
         public DbSet<Actividad> Actividades { get; set; }
+        public DbSet<Tarea> Tareas { get; set; }
 
         public AppDbContext()
            : base("ExamenConnection", throwIfV1Schema: false)

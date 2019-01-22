@@ -38,6 +38,15 @@ namespace Examen.App.App_Start
         //Guarda en la BD a los trabajadores y los usuarios de esos trabajadores
         private void SalvarUsuariosyTrabajadores()
         {
+            //Salvando roles de usuarios
+            var roleAdmin = new AppRole { Name = TiposRole.Admin };
+            var roleUsuario = new AppRole { Name = TiposRole.Usuario };
+
+            var roleManager = new ApplicationRoleManager(new RoleStore<AppRole>(db));
+            roleManager.Create(roleAdmin);
+            roleManager.Create(roleUsuario);
+
+            //Email de los usuarios de cada trabajador
             var emailsDeUsuarios = new[] {
                 "admin@nauta.cu",
                 "pepe@nauta.cu",
@@ -71,6 +80,19 @@ namespace Examen.App.App_Start
             for (int i = 0; i < trabajadores.Count; i++)
             {
                 userManager.AddPassword(trabajadores[i].UserId, "Admin123.");
+
+                var appUser = trabajadores[i].User;
+                int idxArrova = appUser.Email.IndexOf("@");
+                string usuario = appUser.Email.Substring(0, idxArrova);
+
+                if (usuario == "usuario" || usuario.EndsWith("u"))
+                {
+                    userManager.AddToRoles(appUser.Id, roleUsuario.Name);
+                }
+                else
+                {
+                    userManager.AddToRoles(appUser.Id, roleAdmin.Name);
+                }
             }
 
 
@@ -89,15 +111,15 @@ namespace Examen.App.App_Start
                 var creadoId = faker.PickRandom(trabajadores).UserId;
                 act.CreadaPorId = creadoId;
 
-                if (faker.Random.Bool())
-                {
-                    var asignarId = faker.PickRandom(trabajadores).UserId;
-                    while (creadoId == asignarId)
-                    {
-                        asignarId = faker.PickRandom(trabajadores).UserId;
-                    }
-                    act.AsignadaAId = asignarId;
-                }
+                //if (faker.Random.Bool())
+                //{
+                var asignarId = faker.PickRandom(trabajadores).UserId;
+                //while (creadoId == asignarId)
+                //{
+                    asignarId = faker.PickRandom(trabajadores).UserId;
+                //}
+                act.AsignadaAId = asignarId;
+                //}
             }
             db.Actividades.AddRange(actividades);
             db.SaveChanges();
@@ -222,7 +244,12 @@ namespace Examen.App.App_Start
                 int k = 0;
                 for (int i = cantTareasIni; i < cantTareasFin; i++)
                 {
-                    Tarea t = new Tarea { Nombre = tareas[i].Nombre, Porcentaje = porcientos[k++] };
+                    Tarea t = new Tarea
+                    {
+                        Nombre = tareas[i].Nombre,
+                        Porcentaje = porcientos[k++],
+                        Realizada = faker.Random.Bool(),
+                    };
                     a.Tareas.Add(t);
                 }
 

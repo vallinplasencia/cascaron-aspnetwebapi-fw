@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Examen.Dominio.Abstracto
 {
-    public interface IActividadRepo
+    public interface IMiActividadRepo
     {
         /// <summary>
         /// Retorna el listado de los item segun la pagina y la cantidad de item a mostrar asi como el 
@@ -22,7 +22,7 @@ namespace Examen.Dominio.Abstracto
         /// <param name="filtro"></param>
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns>Task<List<Actividad>></returns>
-        Task<List<Actividad>> ListarAsync(int pagina = 0, int cantItem = 50, string ordenar = "nombre", string orden = "ASC", string filtro = null);
+        Task<List<Actividad>> ListarAsignadasAsync(int pagina = 0, int cantItem = 50, string ordenar = "nombre", string orden = "ASC", string filtro = null, string idUserLogeado = null);
 
         /// <summary>
         /// Retorna un item segun el id
@@ -30,7 +30,7 @@ namespace Examen.Dominio.Abstracto
         /// <param name="id"></param>
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns>Task<Actividad></returns>
-        Task<Actividad> GetActividadAsync(int id);
+        Task<Actividad> GetActividadAsignadaAsync(int id, string idUserLogeado = null);
 
         /// <summary>
         /// Salva el nuevo item o actualiza uno existente.
@@ -39,7 +39,7 @@ namespace Examen.Dominio.Abstracto
         /// <param name="actual">Item guardado en la bd q se va a catualizar los valores con el de nuevo item</param>
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns>Task<int></returns>
-        Task<int> SalvarAsync(Actividad nueva, Actividad actual = null);
+        Task<int> SalvarAsignadaAsync(Actividad nueva, Actividad actual = null, string idUserLogeado = null);
 
         /// <summary>
         /// Elimina el item pasado por parametro
@@ -47,13 +47,13 @@ namespace Examen.Dominio.Abstracto
         /// <param name="item">Item a eliminar</param>
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns>Task<Item></Item> Item eliminado</returns>
-        Task<Actividad> RemoverAsync(Actividad item);
+        Task<Actividad> RemoverAsignadaAsync(Actividad item, string idUserLogeado = null);
 
         /// <summary>
         /// Retorna el numero total de item
         /// </summary>
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns></returns>
-        int TotalActividades(string filtro = null);
+        int TotalActividadesAsignadas(string filtro = null, string idUserLogeado = null);
     }
 }

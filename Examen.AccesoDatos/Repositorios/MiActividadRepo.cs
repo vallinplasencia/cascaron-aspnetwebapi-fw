@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace Examen.AccesoDatos.Repositorios
 {
-    public class ActividadRepo : IActividadRepo
+    public class MiActividadRepo : IMiActividadRepo
     {
         private readonly AppDbContext db;
 
-        public ActividadRepo(AppDbContext db)
+        public MiActividadRepo(AppDbContext db)
         {
             this.db = db;
         }
@@ -26,13 +26,13 @@ namespace Examen.AccesoDatos.Repositorios
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns>Task<Actividad></returns>
 
-        public async Task<Actividad> GetActividadAsync(int id)
+        public async Task<Actividad> GetActividadAsignadaAsync(int id, string idUserLogeado = null)
         {
             return await db.Actividades
                 .Include(act => act.Tareas)
                 .Include(act => act.CreadaPor)
                 .Include(act => act.AsignadaA)
-                .FirstOrDefaultAsync(act => act.Id == id);
+                .FirstOrDefaultAsync(act => act.Id == id && act.AsignadaAId == idUserLogeado);
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Examen.AccesoDatos.Repositorios
         /// <param name="filtro"></param>
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns></returns>
-        public async Task<List<Actividad>> ListarAsync(int pagina = 0, int cantItem = 50, string ordenar = "titulo", string orden = "ASC", string filtro = null)
+        public async Task<List<Actividad>> ListarAsignadasAsync(int pagina = 0, int cantItem = 50, string ordenar = "titulo", string orden = "ASC", string filtro = null, string idUserLogeado = null)
         {
             IQueryable<Actividad> q;
 
@@ -76,10 +76,11 @@ namespace Examen.AccesoDatos.Repositorios
                 filtro = filtro.ToLower();
                 q = q.Where(c => c.Titulo.ToLower().Contains(filtro) || c.Descripcion.ToLower().Contains(filtro));
             }
-            q = q.Include(a => a.CreadaPor)
+            q = q
+                .Include(a => a.CreadaPor)
                 .Include(a => a.AsignadaA)
-                .Include(a => a.Tareas);
-
+                .Include(a => a.Tareas)
+                .Where(a => a.AsignadaAId == idUserLogeado);
             //Si cantidad de item >= 1 y pagina >=0 paginado de la bd sino RECUPERO todos los registros.
             if (cantItem >= 1 && pagina >= 0)
             {
@@ -95,7 +96,7 @@ namespace Examen.AccesoDatos.Repositorios
         /// <param name="activo"></param>
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns></returns>
-        public async Task<Actividad> RemoverAsync(Actividad item)
+        public async Task<Actividad> RemoverAsignadaAsync(Actividad item, string idUserLogeado = null)
         {
                 db.Actividades.Remove(item);
                 return (await db.SaveChangesAsync() > 0) ? item : null;
@@ -109,7 +110,7 @@ namespace Examen.AccesoDatos.Repositorios
         /// <param name="actual">Item guardado en la bd q se va a catualizar los valores con el de nueva</param>
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns></returns>
-        public async Task<int> SalvarAsync(Actividad nueva, Actividad actual = null)
+        public async Task<int> SalvarAsignadaAsync(Actividad nueva, Actividad actual = null, string idUserLogeado = null)
         {
             if (nueva.Id == 0)
             {
@@ -214,15 +215,16 @@ namespace Examen.AccesoDatos.Repositorios
         /// </summary>
         /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns></returns>
-        public int TotalActividades(string filtro = null)
+        public int TotalActividadesAsignadas(string filtro = null, string idUserLogeado = null)
         {
             if (filtro != null)
             {
                 return db.Actividades
-                    .Where(c=>c.Titulo.ToLower().Contains(filtro) || c.Descripcion.ToLower().Contains(filtro))
+                    //.Where(c=>c.Titulo.ToLower().Contains(filtro) || c.Descripcion.ToLower().Contains(filtro))
+                    .Where(c => c.AsignadaAId == idUserLogeado && (c.Titulo.ToLower().Contains(filtro) || c.Descripcion.ToLower().Contains(filtro)))
                     .Count();
             }
-            return db.Actividades.Count();
+            return db.Actividades.Where(c => c.AsignadaAId == idUserLogeado).Count();
         }
 
     }

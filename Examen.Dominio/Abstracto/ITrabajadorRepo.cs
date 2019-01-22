@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Examen.Dominio.Abstracto
 {
-    public interface IActividadRepo
+    public interface ITrabajadorRepo
     {
         /// <summary>
         /// Retorna el listado de los item segun la pagina y la cantidad de item a mostrar asi como el 
@@ -20,40 +20,35 @@ namespace Examen.Dominio.Abstracto
         /// <param name="ordenar"></param>
         /// <param name="orden"></param>
         /// <param name="filtro"></param>
-        /// <param name="idUserLogeado">Id del usuario logueado</param>
-        /// <returns>Task<List<Actividad>></returns>
-        Task<List<Actividad>> ListarAsync(int pagina = 0, int cantItem = 50, string ordenar = "nombre", string orden = "ASC", string filtro = null);
+        /// <returns>Task<List<Trabajador>></returns>
+        Task<List<Trabajador>> ListarAsync(int pagina = 0, int cantItem = 50, string ordenar = "nombre", string orden = "ASC", string filtro = null);
 
         /// <summary>
         /// Retorna un item segun el id
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="idUserLogeado">Id del usuario logueado</param>
-        /// <returns>Task<Actividad></returns>
-        Task<Actividad> GetActividadAsync(int id);
+        /// <returns>Task<Trabajador></returns>
+        Task<Trabajador> GetTrabajadorAsync(string id);
 
         /// <summary>
         /// Salva el nuevo item o actualiza uno existente.
         /// </summary>
         /// <param name="nueva">Datos del item a salvar. Si es un nuevo item el id tiene q ser cero</param>
         /// <param name="actual">Item guardado en la bd q se va a catualizar los valores con el de nuevo item</param>
-        /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns>Task<int></returns>
-        Task<int> SalvarAsync(Actividad nueva, Actividad actual = null);
+        Task<int> SalvarAsync(Trabajador nueva, Trabajador actual = null);
 
         /// <summary>
         /// Elimina el item pasado por parametro
         /// </summary>
         /// <param name="item">Item a eliminar</param>
-        /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns>Task<Item></Item> Item eliminado</returns>
-        Task<Actividad> RemoverAsync(Actividad item);
+        Task<Trabajador> RemoverAsync(Trabajador item);
 
         /// <summary>
         /// Retorna el numero total de item
         /// </summary>
-        /// <param name="idUserLogeado">Id del usuario logueado</param>
         /// <returns></returns>
-        int TotalActividades(string filtro = null);
+        int TotalTrabajadores(string filtro = null);
     }
 }

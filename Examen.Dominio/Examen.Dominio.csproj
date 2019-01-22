@@ -54,10 +54,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Abstracto\ITareaRepo.cs" />
+    <Compile Include="Abstracto\IMiActividadRepo.cs" />
     <Compile Include="Abstracto\IActividadRepo.cs" />
     <Compile Include="Abstracto\IActivoRepo.cs" />
     <Compile Include="Abstracto\ICategoriaRepo.cs" />
     <Compile Include="Abstracto\IResponsableRepo.cs" />
+    <Compile Include="Abstracto\ITrabajadorRepo.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="Entidades\Actividad.cs" />
     <Compile Include="Entidades\Activo.cs" />

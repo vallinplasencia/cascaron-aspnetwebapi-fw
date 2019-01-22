@@ -21,8 +21,12 @@ namespace Examen.App
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
+            GlobalConfiguration.Configuration.Formatters.JsonFormatter.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            GlobalConfiguration.Configuration.Formatters.Remove(GlobalConfiguration.Configuration.Formatters.XmlFormatter);
+
             //Inicializando y poblando la BD
-            Database.SetInitializer(new ExamenDbInicializar());
+            //Database.SetInitializer(new ExamenDbInicializar());
+            Database.SetInitializer(new ExamenUsuariosDbInicializar());
         }
     }
 }

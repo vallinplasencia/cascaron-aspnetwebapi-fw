@@ -20,6 +20,7 @@ using System.Data.Entity;
 using Examen.Dominio.Entidades;
 using System.Linq;
 using Examen.App.Util.Seguridad;
+using Examen.Dominio.Abstracto;
 
 namespace Examen.App.Controllers
 {
@@ -30,9 +31,11 @@ namespace Examen.App.Controllers
         private const string LocalLoginProvider = "Local";
         private ApplicationUserManager _userManager;
         private ApplicationRoleManager _roleManager;
+        
 
         public AccountController()
         {
+            
         }
 
         public AccountController(ApplicationUserManager userManager, ApplicationRoleManager roleManager,
@@ -41,6 +44,7 @@ namespace Examen.App.Controllers
             UserManager = userManager;
             RoleManager = roleManager;
             AccessTokenFormat = accessTokenFormat;
+            
         }
 
         public ApplicationUserManager UserManager
@@ -358,8 +362,16 @@ namespace Examen.App.Controllers
                 return BadRequest(ModelState);
             }
 
+            var admin = UserManager.FindByEmail("admin@nauta.cu");
+            //var trabAdmin = await new AccesoDatos.Repositorios.TrabajadorRepo().GetTrabajadorAsync(admin.Id);
             //var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
-            var user = new AppUser() { UserName = model.Email, Email = model.Email };
+            string correo = model.Email;
+            string nombre = correo.First().ToString().ToUpper()+correo.Substring(1, correo.IndexOf("@")-1);
+            var user = new AppUser() {
+                UserName = model.Email,
+                Email = model.Email,
+                Trabajador = new Trabajador() { Nombre = nombre, Jefe = admin.Trabajador }
+            };
 
             IdentityResult result = await UserManager.CreateAsync(user, model.Password);
 
